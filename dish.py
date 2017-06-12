@@ -91,7 +91,7 @@ class YogurtSauce(Dish):
     def __init__(self,order):
         Dish.__init__(self,order)
         self.T=1
-class UltimateGourmetGrilledChicken(Dish):
+class UltimateGourmetGrilledCheese(Dish):
     def __init__(self,order):
         Dish.__init__(self,order)
         self.T=6
@@ -113,7 +113,7 @@ Recipes = {
     "Tacos":Tacos,
     "Yogurt Sauce":YogurtSauce,
     ###
-    "Ultimate Gourmet Grilled Chicken":UltimateGourmetGrilledChicken,
+    "Ultimate Gourmet Grilled Cheese":UltimateGourmetGrilledCheese,
     ###
     "Pizza Margherita":PizzaMargherita
 }
