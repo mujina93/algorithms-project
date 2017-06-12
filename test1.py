@@ -9,8 +9,13 @@ import time     # for time testing
 orders = {}
 # pool of preparations to be ordered and assigned
 A = list()
+# cooks in the kitchen. Each of them has its own work to do
+# (which is assigned after the scheduler has run).
+# Each cook has its own workload = total time it has to work
+numberOfCooks = 2
+cooksWorkloads = [0]*numberOfCooks
 # two orders arrive!
-o1 = order.Order(["Roast Chicken Red Whine Demi Glace Polenta"],
+o1 = order.Order(["Pizza Margherita", "Pizza Margherita"],
                         0000)
 o2 = order.Order(["Crispy Fish Tacos With Spicy Yogurt Sauce"],
                0001)
@@ -21,9 +26,10 @@ pool.inPool(o2,A,orders)
 start_time = time.time()
 # security code - avoids inputs that are too long!
 c = "n"
-if len(A) > 8:
+if len(A) > 7:
     print "%i are too many dishes to test! are you sure??(y/n)"%(len(A))
     c = str(raw_input(">"))
-if c=="y" or len(A) <= 8:
-    scheduler.generate(len(A),A)
+if c=="y" or len(A) <= 7:
+    best = scheduler.Scheduler.optimum(A,numberOfCooks,
+                            cooksWorkloads,orders)
     print "done! in %f seconds"%(time.time()-start_time)

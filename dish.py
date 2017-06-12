@@ -15,6 +15,8 @@ class Dish:
         self.ord = order
         self.prerequisites = list()
         self.recipePrerequisites = []
+        self.visited = False
+        self.tfinish = 0
 
     # hook to a new prerequisite (considered as child
     # or neighbour)
@@ -47,6 +49,34 @@ class Dish:
     # get order to which the preparation is assigned
     def get_ord(self):
         return self.ord
+
+    # was the dish visited by the optimizer?
+    def was_visited(self):
+        return self.visited
+
+    # setter
+    def set_visited(self, logic):
+        self.visited = logic
+
+    # updater for tfinish. The scheduler updates from the
+    # outside the tifinish for the dish, based on the
+    # information of: which cook (with its workload) was
+    # the dish assigned?
+    def set_tfinish(self, workload):
+        # the time at which the dish will be finished is:
+        # = time for preparing it
+        # + time at which the order was made
+        # + time that has to pass until the assigned cook
+        # is free to cook that dish
+        self.tfinish = self.T + self.ord + workload
+
+    # getter for tfinish
+    def get_tfinish(self):
+        return self.tfinish
+
+    # getter for tstart
+    def get_tstart(self):
+        return self.tfinish - self.T
 
     # debugging
     def __str__(self):
