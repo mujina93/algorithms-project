@@ -16,12 +16,14 @@ numberOfCooks = 2
 cooksWorkloads = [0]*numberOfCooks
 # two orders arrive!
 o1 = order.Order(["Pizza Margherita", "Pizza Margherita"],
-                        0000)
-o2 = order.Order(["Crispy Fish Tacos With Spicy Yogurt Sauce"],
-               0001)
+                        0)
+o2 = order.Order(["Roast Chicken Red Whine Demi Glace Polenta"],
+               1)
+o3 = order.Order(["Ultimate Gourmet Grilled Cheese"],40)
 # loads them in the pool
 pool.inPool(o1,A,orders)
 pool.inPool(o2,A,orders)
+pool.inPool(o3,A,orders)
 # optimize!
 start_time = time.time()
 # security code - avoids inputs that are too long!
@@ -33,3 +35,6 @@ if c=="y" or len(A) <= 7:
     best = scheduler.Scheduler.optimum(A,numberOfCooks,
                             cooksWorkloads,orders)
     print "done! in %f seconds"%(time.time()-start_time)
+# flush
+A = []
+orders = {}

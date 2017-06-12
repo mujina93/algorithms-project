@@ -7,8 +7,8 @@ class Order:
         self.requests = requests # strings with ordered dishes
         self.timestamp = timestamp # time of the order - UNIQUE
         # used by Scheduler, when computing coldness
-        self.min = 0
-        self.max = sys.maxint
+        self.min = sys.maxint
+        self.max = 0
 
     # getters
     def get_requests(self):

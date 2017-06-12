@@ -17,6 +17,7 @@ class Dish:
         self.recipePrerequisites = []
         self.visited = False
         self.tfinish = 0
+        self.final = False
 
     # hook to a new prerequisite (considered as child
     # or neighbour)
@@ -78,6 +79,12 @@ class Dish:
     def get_tstart(self):
         return self.tfinish - self.T
 
+    # is it a final dish? (not an intermediate step)
+    # final dishes are the ones that appear on menu and
+    # that can be ordered
+    def is_final(self):
+        return self.final
+
     # debugging
     def __str__(self):
         return self.__class__.__name__
@@ -90,6 +97,7 @@ class RoastChickenRedWhineDemiGlacePolenta(Dish):
         Dish.__init__(self,order)
         self.T = 10
         self.recipePrerequisites = ["Roast Chicken","Polenta"]
+        self.final = True
 class RoastChicken(Dish):
     def __init__(self,order):
         Dish.__init__(self,order)
@@ -104,6 +112,7 @@ class CrispyFishTacosWithSpicyYogurtSauce(Dish):
         self.T = 7
         self.recipePrerequisites = \
             ["Crispy Fish","Tacos","Yogurt Sauce"]
+        self.final = True
 class CrispyFish(Dish):
     def __init__(self,order):
         Dish.__init__(self,order)
@@ -125,10 +134,12 @@ class UltimateGourmetGrilledCheese(Dish):
     def __init__(self,order):
         Dish.__init__(self,order)
         self.T=6
+        self.final = True
 class PizzaMargherita(Dish):
     def __init__(self,order):
         Dish.__init__(self,order)
         self.T=14
+        self.final = True
 
 # Recipes dictionary, used by the factory to build objects
 Recipes = {

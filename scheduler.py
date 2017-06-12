@@ -107,7 +107,7 @@ class Scheduler():
                 if i.was_visited()==False:
                     # if there is a violation in a tree
                     # then all the Mschedule is invalid
-                    if cls.check(i,C)==False:
+                    if cls.check(i,C,MS[C])==False:
                         return False
         # reset visited status of dishes
         for S in MS:
@@ -120,17 +120,26 @@ class Scheduler():
     # an M-schedule
     # !!! sets dish as visited, and sets tfinish!
     @classmethod
-    def check(cls,i,cook):
+    def check(cls,i,cook,schedule):
         # you are visiting the dish in the M-schedule
         i.set_visited(True)
         # set tfinish for the dish, adding the
-        # workload of the cook number C
-        i.set_tfinish(cls.localCooksWorkloads[cook])
+        # workload of the cook number C, and the total
+        # time of other dishes preceding this one
+        # in the same schedule
+        offsetSchedule = 0
+        for p in schedule:
+            if p == i:
+                break
+            else:
+                offsetSchedule += p.get_T()
+        offset = cls.localCooksWorkloads[cook] + offsetSchedule
+        i.set_tfinish(offset)
         for j in i.get_prerequisites():
             # check() returns False if there was
             # some violation, otherwise returns
             # the time
-            tFinish_j = cls.check(j,cook)
+            tFinish_j = cls.check(j,cook,schedule)
             if tFinish_j==False:
                 # if there was a violation somewhere
                 # in the tree, backpropagates the
@@ -185,8 +194,17 @@ class Scheduler():
     # Function that prints the result in a well formatted way
     @classmethod
     def explain(cls):
-        print "Best M-schedule: (loss: %f)"%cls.lowestLoss
+        print "Best M-schedule: (loss: ",
+        print "%f, slowness constant: %2.1f)"%(cls.lowestLoss,
+                                                cls.alpha)
         for C in range(cls.numberOfCooks):
             print "cook %i"%C
-            print ' \n'.join('{}: {}'.format(*k)
-                    for k in enumerate(cls.bestMschedule[C]))
+            for ind, dish in enumerate(cls.bestMschedule[C]):
+                finalStar = ""
+                if dish.is_final():
+                    finalStar = '*'
+                print " %i) from %i to %i: %s%s (ord. %i)"%(ind,
+                                dish.get_tstart(),
+                                dish.get_tfinish(),
+                                dish,finalStar,
+                                dish.get_ord())
