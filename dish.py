@@ -1,6 +1,7 @@
 # Dish object(s). Each of them represents a "unit" that
 # can be prepared. The instantiation is done via factory
 # design pattern.
+
 class Dish:
     # Create based on class name:
     # constructor called through the dictionary Recipes
@@ -18,6 +19,7 @@ class Dish:
         self.visited = False
         self.tfinish = 0
         self.final = False
+        self.temporaryCook = -1
 
     # hook to a new prerequisite (considered as child
     # or neighbour)
@@ -63,13 +65,15 @@ class Dish:
     # outside the tifinish for the dish, based on the
     # information of: which cook (with its workload) was
     # the dish assigned?
-    def set_tfinish(self, workload):
+    def set_tfinish(self, offset):
         # the time at which the dish will be finished is:
-        # = time for preparing it
-        # + time at which the order was made
-        # + time that has to pass until the assigned cook
+        # = current time
+        # + offset (= workload of the cook that should
+        # prepare it + preparation times of new dishes
+        # assigned to that cook BEFORE this dish
+        # + time at which the scheduler has started running)
         # is free to cook that dish
-        self.tfinish = self.T + self.ord + workload
+        self.tfinish = self.T  + offset
 
     # getter for tfinish
     def get_tfinish(self):
@@ -85,9 +89,23 @@ class Dish:
     def is_final(self):
         return self.final
 
+    # temporary cook getter/setter. Temporary cook is set
+    # by the scheduler. This information is retrieved when
+    # computing the tfinish time for a dish (you must know)
+    # which coooks were the prerequisites of this dish
+    # assigned to, in order to compute possible violations
+    def set_temporaryCook(self, index):
+        self.temporaryCook = index
+
+    def get_temporaryCook(self):
+        return self.temporaryCook
+
     # debugging
     def __str__(self):
-        return self.__class__.__name__
+        finalStar = ""
+        if self.final:
+            finalStar = '*'
+        return self.__class__.__name__ + finalStar
 
 # Dishes classes - RECIPE BOOK
 # using a static variable for recipe_prerequisites
@@ -95,51 +113,63 @@ class Dish:
 class RoastChickenRedWhineDemiGlacePolenta(Dish):
     def __init__(self,order):
         Dish.__init__(self,order)
-        self.T = 10
+        self.T = 10*60
         self.recipePrerequisites = ["Roast Chicken","Polenta"]
         self.final = True
 class RoastChicken(Dish):
     def __init__(self,order):
         Dish.__init__(self,order)
-        self.T = 40
+        self.T = 40*60
 class Polenta(Dish):
     def __init__(self,order):
         Dish.__init__(self,order)
-        self.T = 10
+        self.T = 10*60
 class CrispyFishTacosWithSpicyYogurtSauce(Dish):
     def __init__(self,order):
         Dish.__init__(self,order)
-        self.T = 7
+        self.T = 7*60
         self.recipePrerequisites = \
             ["Crispy Fish","Tacos","Yogurt Sauce"]
         self.final = True
 class CrispyFish(Dish):
     def __init__(self,order):
         Dish.__init__(self,order)
-        self.T = 5
+        self.T = 5*60
         self.recipePrerequisites = ["Cleaned Fish"]
 class CleanedFish(Dish):
     def __init__(self,order):
         Dish.__init__(self,order)
-        self.T = 2
+        self.T = 2*60
 class Tacos(Dish):
     def __init__(self,order):
         Dish.__init__(self,order)
-        self.T=4
+        self.T=4*60
 class YogurtSauce(Dish):
     def __init__(self,order):
         Dish.__init__(self,order)
-        self.T=1
+        self.T=1*60
 class UltimateGourmetGrilledCheese(Dish):
     def __init__(self,order):
         Dish.__init__(self,order)
-        self.T=6
+        self.T=6*60
         self.final = True
 class PizzaMargherita(Dish):
     def __init__(self,order):
         Dish.__init__(self,order)
-        self.T=14
+        self.T=14*60
         self.final = True
+
+class FiletMignonWithRichBalsamicGlaze(Dish):
+    def __init__(self,order):
+        Dish.__init__(self,order)
+        self.T=15*60
+        self.final = True
+        self.recipePrerequisites = ["Filet Mignon"]
+
+class FiletMignon(Dish):
+    def __init__(self,order):
+        Dish.__init__(self,order)
+        self.T=5*60
 
 # Recipes dictionary, used by the factory to build objects
 Recipes = {
@@ -156,5 +186,8 @@ Recipes = {
     ###
     "Ultimate Gourmet Grilled Cheese":UltimateGourmetGrilledCheese,
     ###
-    "Pizza Margherita":PizzaMargherita
+    "Pizza Margherita":PizzaMargherita,
+    ###
+    "Filet Mignon With Rich Balsamic Glaze":FiletMignonWithRichBalsamicGlaze,
+    "Filet Mignon":FiletMignon
 }
