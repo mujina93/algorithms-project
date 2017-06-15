@@ -3,7 +3,7 @@ import sys  # for maxint
 import time # for starting time of optimization
 
 class Scheduler():
-    # static variables for partial results
+    # static variables for optimization
     numberOfCooks = 0
     bestMschedule = [[]]
     localCooksWorkloads = []
@@ -12,7 +12,6 @@ class Scheduler():
     optimizationStartTime = 0
     # static variables used for cutting
     cuts = list()
-    Mschedule = list()
     lowestLoss = sys.maxint
     # mixing constant. How much do you want to weigh
     # slowness with respect to coldness?
@@ -26,7 +25,6 @@ class Scheduler():
         cls.alpha = alpha
         cls.localCooksWorkloads = WorkLoads
         cls.numberOfCooks = len(WorkLoads)
-        cls.bestMschedule = [[]]*cls.numberOfCooks
 
     # given a pool of preparations, and a number of cooks M
     # returns the best M-schedule for the preparation
@@ -66,97 +64,95 @@ class Scheduler():
         # moved) at 0. The extremes: cuts[0] and cuts[N]
         # are fixed, one at 0, and one past the end of L.
         cls.cuts = [0]*M +[len(L)]
-        # empties M-schedule: a list (one for each cook)
-        # of (each of them containing the dishes that we are
-        # to assign to that cook)
-        # e.g. Mschedule[0] is the list of new preparations that
-        # could be assigned to the cook n.1
-        cls.Mschedule = list()
-        for i in range(M):
-            cls.Mschedule.append(list())
         # cut list in all possible ways and assign the pieces
         # to the cooks (put pieces in the Mschedule)
         cls.recursiveCut(1,L,M)
 
     # recursive part of cutter
     # !!! this calls the validation and loss function
-    DrecursiveCut = True# DEBUGGER
+    DrecursiveCut = False# DEBUGGER
     @classmethod
     def recursiveCut(cls,c,L,M):
         # moves current cut to previous cut's position
         cls.cuts[c] = cls.cuts[c-1]
         # do stuff until this cut has reached the end of L
         while cls.cuts[c] <= len(L):
+            # creates empty M-schedule: a list (one for each cook)
+            # of (each of them containing the dishes that we are
+            # to assign to that cook)
+            # e.g. Mschedule[0] is the list of new preparations that
+            # could be assigned to the cook n.1
+            Mschedule = list()
+            for i in range(M):
+                Mschedule.append(list())
             # let the cuts above move first
             if c < (M-1):
                 cls.recursiveCut(c+1,L,M)
             # cut the list, and assign each piece
             # DEBUG
             if cls.DrecursiveCut:
-                print "cuts ",
                 print ' '.join(str(cls.cuts))
             # DEBUG
             if cls.DrecursiveCut:
                 print "----------------------------"
             for j in range(M):
-                cls.Mschedule[j] =\
-                    L[cls.cuts[j]:cls.cuts[j+1]]
+                # DEBUG
+                if cls.DrecursiveCut:
+                    print "  BEFORE"
+                    cls.explain()
+                Mschedule[j] = L[cls.cuts[j]:cls.cuts[j+1]]
+                # DEBUG
+                if cls.DrecursiveCut:
+                    print "  AFTER"
+                    cls.explain()
                 # each dish is assigned its temporary cook
                 # (this serves later to cls.validity() for
                 # computing the tfinish in the right way)
-                for dish in cls.Mschedule[j]:
+                for dish in Mschedule[j]:
                     dish.set_temporaryCook(j)
 
-                # # DEBUG
+                # DEBUG
                 if cls.DrecursiveCut:
                     print " cook %i:"%j
                     print "%s"%'  \n'.join('{}: {}'.format(*k)
-                        for k in enumerate(cls.Mschedule[j]))
-            # DEBUG
-            if cls.DrecursiveCut:
-                print "1"
-                cls.explain()
+                        for k in enumerate(Mschedule[j]))
             # check if the schedule violates contraints
-            if cls.validity():
+            if cls.validity(Mschedule):
                 # if valid, check if it's better than
                 # the current best
-                newLoss = cls.loss(cls.Mschedule)
+                newLoss = cls.loss(Mschedule)
                 # DEBUG
                 if cls.DrecursiveCut:
-                    # for S in cls.Mschedule:
+                    # for S in Mschedule:
                     #     for i in S:
                     #         print i
                     # for j in range(M):
                     #     print " cook %i:"%j
                     #     print "%s"%'  \n'.join('{}: {}'.format(*k)
-                    #         for k in enumerate(cls.Mschedule[j]))
+                    #         for k in enumerate(Mschedule[j]))
                     print "    LOSS: " + str(newLoss)
                     print
                 if newLoss < cls.lowestLoss:
+                    cls.bestMschedule = Mschedule
+                    cls.lowestLoss = newLoss
                     # DEBUG
                     if cls.DrecursiveCut:
                         print "CHANGING BEST"
-                    cls.bestMschedule = cls.Mschedule
-                    cls.lowestLoss = newLoss
-            # DEBUG
-            if cls.DrecursiveCut:
-                print "2"
-                cls.explain()
             # advance the cut's position
             cls.cuts[c] += 1
 
     # Validity checker - checks if an Mschedule is valid
-    Dvalidity = True # DEBUGGER
+    Dvalidity = False # DEBUGGER
     @classmethod
-    def validity(cls):
+    def validity(cls,MS):
         # reset visited status of dishes
-        for S in cls.Mschedule:
+        for S in MS:
             for i in S:
                 i.set_visited(False)
         # for each cook (each schedule of the M-schedule)
         for C in range(cls.numberOfCooks):
             # and for each dish in the schedule
-            for i in cls.Mschedule[C]:
+            for i in MS[C]:
                 # if dish wasn't visited yet
                 if i.was_visited()==False:
                     # if there is a violation in a tree
@@ -164,7 +160,7 @@ class Scheduler():
                     # DEBUG
                     if cls.Dcheck:
                         print "validating tree of: %s"%i
-                    if cls.check(i)==-1:
+                    if cls.check(i,MS)==-1:
                         # DEBUG
                         if cls.Dvalidity:
                             print "    VIOLATION"
@@ -177,7 +173,7 @@ class Scheduler():
     # !!! sets dish as visited, and sets tfinish!
     Dcheck = False  # DEBUG
     @classmethod
-    def check(cls,i):
+    def check(cls,i,MS):
         # you are visiting the dish in the M-schedule
         i.set_visited(True)
         # set tfinish for the dish, adding the
@@ -187,7 +183,7 @@ class Scheduler():
         offsetSchedule = 0
         # total preparation time of other dishes
         # that have been assigned to be prepared before
-        for p in cls.Mschedule[i.get_temporaryCook()]:
+        for p in MS[i.get_temporaryCook()]:
             # DEBUG
             if cls.Dcheck:
                 print " comparing %s, %s: %s"%(p,i,p==i)
@@ -208,7 +204,7 @@ class Scheduler():
             # check() returns False if there was
             # some violation, otherwise returns
             # the time
-            tFinish_j = cls.check(j)
+            tFinish_j = cls.check(j,MS)
             # DEBUG
             # if cls.Dcheck:
             #     print "just got %s"%(str(tFinish_j))
@@ -290,12 +286,16 @@ class Scheduler():
         print "%10.1f, slowness constant: %2.1f)"%(cls.lowestLoss,
                                                 cls.alpha)
         form = lambda x: time.strftime("%H:%M",time.localtime(x))
-        for C in range(cls.numberOfCooks):
-            print "cook %i"%C
-            for ind, dish in enumerate(cls.bestMschedule[C]):
-                print " %i) from %s to %s: %s (ord. %s)"%(
-                        ind,
-                        form(dish.get_tstart()),
-                        form(dish.get_tfinish()),
-                        dish,
-                        form(dish.get_ord()))
+        for S in cls.bestMschedule:
+            print "cook --"
+            for i in S:
+                print i
+        # for C in range(cls.numberOfCooks):
+        #     print "cook %i"%C
+        #     for ind, dish in enumerate(cls.bestMschedule[C]):
+        #         print " %i) from %s to %s: %s (ord. %s)"%(
+        #                 ind,
+        #                 form(dish.get_tstart()),
+        #                 form(dish.get_tfinish()),
+        #                 dish,
+        #                 form(dish.get_ord()))
