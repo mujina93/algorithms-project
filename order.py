@@ -38,3 +38,6 @@ class Order:
         return "order-time:%i\nrequested:%s"%(
         self.timestamp, '\n'.join('{}: {}'.format(*k)
         for k in enumerate(self.requests)))
+
+    def __hash__(self):
+        return self.timestamp

@@ -2,6 +2,8 @@
 # can be prepared. The instantiation is done via factory
 # design pattern.
 
+#import copy # for instantiating new local variables
+
 class Dish:
     # Create based on class name:
     # constructor called through the dictionary Recipes
@@ -158,18 +160,31 @@ class PizzaMargherita(Dish):
         Dish.__init__(self,order)
         self.T=14*60
         self.final = True
-
+class PizzaDiavola(Dish):
+    def __init__(self,order):
+        Dish.__init__(self,order)
+        self.T=15*60
+        self.final = True
 class FiletMignonWithRichBalsamicGlaze(Dish):
     def __init__(self,order):
         Dish.__init__(self,order)
         self.T=15*60
         self.final = True
         self.recipePrerequisites = ["Filet Mignon"]
-
 class FiletMignon(Dish):
     def __init__(self,order):
         Dish.__init__(self,order)
         self.T=5*60
+class MisoSoup(Dish):
+    def __init__(self,order):
+        Dish.__init__(self,order)
+        self.T=6*60
+        self.final=True
+class Sashimi(Dish):
+    def __init__(self,order):
+        Dish.__init__(self,order)
+        self.T=5*60
+        self.final=True
 
 # Recipes dictionary, used by the factory to build objects
 Recipes = {
@@ -187,6 +202,12 @@ Recipes = {
     "Ultimate Gourmet Grilled Cheese":UltimateGourmetGrilledCheese,
     ###
     "Pizza Margherita":PizzaMargherita,
+    ###
+    "Pizza Diavola":PizzaDiavola,
+    ###
+    "Miso Soup":MisoSoup,
+    ###
+    "Sashimi":Sashimi,
     ###
     "Filet Mignon With Rich Balsamic Glaze":FiletMignonWithRichBalsamicGlaze,
     "Filet Mignon":FiletMignon
