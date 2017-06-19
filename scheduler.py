@@ -104,10 +104,6 @@ class Scheduler():
             if c < (M-1):
                 cls.recursiveCut(c+1,L,M)
             # cut the list, and assign each piece
-            # DEBUG
-            if cls.DrecursiveCut:
-                print "----------------------------"
-                print ' '.join(str(cls.cuts))
             for j in range(M):
                 Mschedule[j] = L[cls.cuts[j]:cls.cuts[j+1]]
                 # each dish is assigned its temporary cook
@@ -116,11 +112,6 @@ class Scheduler():
                 for dish in Mschedule[j]:
                     dish.set_temporaryCook(j)
 
-                # DEBUG
-                if cls.DrecursiveCut:
-                    print " cook %i:"%j
-                    print "%s"%'  \n'.join('{}: {}'.format(*k)
-                        for k in enumerate(Mschedule[j]))
             # check if the schedule violates contraints
             if cls.validity(Mschedule):
                 # if valid, check if it's better than
@@ -129,11 +120,6 @@ class Scheduler():
                 if newLoss < cls.lowestLoss:
                     cls.bestMschedule = copy.deepcopy(Mschedule)
                     cls.lowestLoss = newLoss
-                # DEBUG
-                if cls.DrecursiveCut:
-                    print "********VALID***********"
-                    cls.explain()
-                    print
             # advance the cut's position
             cls.cuts[c] += 1
 
@@ -149,17 +135,11 @@ class Scheduler():
         for C in range(cls.numberOfCooks):
             # and for each dish in the schedule
             for i in MS[C]:
-                # if dish wasn't visited yet
+                # if dish is final
                 if i.is_final():
                     # if there is a violation in a tree
                     # then all the Mschedule is invalid
-                    # DEBUG
-                    # if cls.Dcheck:
-                    #     print "validating tree of: %s"%i
                     if cls.check(i,MS)==-1:
-                        # DEBUG
-                        if cls.Dvalidity:
-                            print "    INVALID"
                         return False
         # if no violations were found, return True
         return True
@@ -180,9 +160,6 @@ class Scheduler():
         # total preparation time of other dishes
         # that have been assigned to be prepared before
         for p in MS[i.get_temporaryCook()]:
-            # # DEBUG
-            # if cls.Dcheck:
-            #     print " comparing %s, %s: %s"%(p,i,p==i)
             if p == i:
                 break
             else:
@@ -191,15 +168,7 @@ class Scheduler():
         offset = cls.localCooksWorkloads[i.get_temporaryCook()] +\
                                                 offsetSchedule +\
                                         cls.optimizationStartTime
-        # DEBUG
-        # if cls.Dcheck:
-        #     #print id(cls.localCooksWorkloads[i.get_temporaryCook()] +\
-        #     #                                        offsetSchedule +\
-        #     #                                cls.optimizationStartTime)
-        #     #print  id(offset)
-        #     print "offset for %s: %3.f"%(i,
-        #         (offset%cls.optimizationStartTime)/60)
-        #     print
+
         i.set_tfinish(offset)
 
         for j in i.get_prerequisites():
@@ -207,9 +176,6 @@ class Scheduler():
             # some violation, otherwise returns
             # the time
             tFinish_j = cls.check(j,MS)
-            # DEBUG
-            # if cls.Dcheck:
-            #     print "just got %s"%(str(tFinish_j))
             if tFinish_j==-1:
                 # if there was a violation somewhere
                 # in the tree, backpropagates the
@@ -219,30 +185,13 @@ class Scheduler():
             else:
                 # checks for violation: will j
                 # be finised before i is started?
-                # DEBUG
-                if cls.Dcheck:
-                    print "comparing dish: %s and prerequisite: %s"%(i,j)
-                    # print "tstart (of dish): %f, tfinish (of prer): %f"%(
-                    #     float(i.get_tstart() or 0), float(tFinish_j or 0)
-                    # )
-                    print "tstart (of dish): %s, tfinish (of prerequisite): %s"%(
-                       time.strftime("%H:%M",time.localtime(i.get_tstart())),
-                       time.strftime("%H:%M",time.localtime(tFinish_j)))
                 if (tFinish_j > i.get_tstart()):
                     # VIOLATION
-                    # # DEBUG
-                    # if cls.Dcheck:
-                    #     print "violation found"
                     # the "violation error signal" starts
                     # backpropagating from here
                     return -1
         # if the dish has no prerequisites, or no violation
         # was found, return the tifinish of the dish
-        # ok
-        # # DEBUG
-        # if cls.Dcheck:
-        #     print "ok"
-        #     print "returning %f"%(i.get_tfinish())
         return i.get_tfinish()
 
     # loss function(s)
