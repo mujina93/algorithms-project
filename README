@@ -1,1 +1,5 @@
-Algorithms Project
+***Algorithms Project***
+  Job shop scheduling (similar) solved by brute force.
+  Read pdf essay for explanation.
+  Run 'testo.py' with command line arguments m (= number of cooks) and alpha (= how much you want 
+  the speed of your service to matter from 0 to 1).
